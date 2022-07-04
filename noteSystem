@@ -1,0 +1,985 @@
+#! /bin/bash
+
+################################################################################
+#                                   noteSystem					#
+#									       #
+# This is a simple program that creates a tldr markdown file containg a        #
+# pre-made script template.                                                    #
+# 									       #
+# It copies ~/.tldr/tldr/pages/linux/templateScript-info.md to the present     #
+# working directory.                                                           #
+#									       #
+# Change History							       #
+# 01/29/2022 Joshua Anderson   Original code. Suitable only for testing.       #
+# 01/29/2020 Joshua Anderson   Tested code. V1.0.0.			       #
+################################################################################
+################################################################################
+# Copyright (C) 2022 Joshua Anderson                                           #
+# jcanderson.al@hotmail.com						       #
+# This program is free software; you can redistribute it and/or modify	       #
+# it under the terms of the GNU General Public License as published by         #
+# the Free Software Foundation; either version 2 of the License, or            #
+# (at your option) any later version. 					       #
+#									       #
+# This program is distributed in the hope that it will be useful,	       #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of	       #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the		       #
+# GNU General Public License for more details.				       #
+#									       #
+# You should have received a copy of the GNU General Public License	       #
+# along with this program; if not, write to the Free Software		       #
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA      #
+################################################################################
+################################################################################
+# general - Help							       #
+################################################################################
+f_help()
+{
+    # Display Help
+    echo " 				HELP OUTPUT"
+    echo
+    echo "	create-script - Creates a new shell script file with by copying" 
+    echo " 			a script from /usr/local/bin/scripts as a template."
+    echo
+    echo "	Syntax: 	noteSystem --[o|c|r|g|h]"
+    echo " 				  OR"
+    echo "			noteSystem {{Name_Of_Note}}"
+    echo
+    echo "	Options:"
+    echo
+    echo "	{{Note Name}}			View Note - Note contents display in stdout."
+    echo " 	{{no argument}}			List all notes"
+    echo "	-o {{Note Name}}		Open Note - Note opens in vim text editor."
+    echo "	-c				Create Note - Fast note creation in /personal."
+    echo "	-r				Delete Note - Delete most recently created note in specified category."
+    echo "	-g				GPL License - Print the GPL license notification."
+    echo "	-h				Help - Print this Help function."
+    echo " 	-s {{text_to_search_for}}	Search - Display list of notes that contain {{text_to_search_for}}."
+    echo " 	-m {{Note Name}} 		Move {{new_to_be_moved}} to the notes folder."
+}
+
+################################################################################
+# general - Print the GPL license header				       #
+################################################################################
+f_gpl()
+{
+echo
+echo
+echo "##############################################################################"
+echo "# Copyright (C) 2007, 2016 David Both				           #"
+echo "# Copyright (C) 2020 Joshua Anderson                                         #"
+echo "# jcanderson.al@hotmail.com					           #"
+echo "# LinuxGeek46@both.org						           #"
+echo "#						       			           #"
+echo "# This program is free software; you can redistribute it and/or modify       #"
+echo "# it under the terms of the GNU General Public License as published by       #"
+echo "# the Free Software Foundation; either version 2 of the License, or          #"
+echo "# (at your option) any later version.				           #"
+echo "#						       			           #"
+echo "# This program is distributed in the hope that it will be useful,	           #"
+echo "# but WITHOUT ANY WARRANTY; without even the implied warranty of	           #"
+echo "# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the	           #"
+echo "# GNU General Public License for more details.			           #"
+echo "#						        		           #"
+echo "# You should have received a copy of the GNU General Public License          #"
+echo "# along with this program; if not, write to the Free Software	           #"
+echo "# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA    #"
+echo "##############################################################################"
+echo
+}
+
+################################################################################
+# general - Check for improper input in a case statment. #
+################################################################################
+bad_option_check()
+    {
+
+if [ $badoption = 1 ]
+then
+	echo 
+	echo "			   ERROR: Invalid option"
+	echo "		========================================="
+	echo " 				$userinput1"
+	echo
+	f_help
+	error=1
+fi
+}
+
+################################################################################
+############################ remove_note ENTRANCE ##############################
+################################################################################
+# remove_note - Process the input options				      #
+################################################################################
+removenote_get_userinput()
+{
+	clear
+
+echo " "
+echo "CHOOSE A category:"
+echo "=================="
+echo "0.\) dv0: System Administration & Popular Tool List: -- How to's for common tasks"
+echo "1.\) dv1: Broad Computer Subjects: -- EFI, Shell, Networking, Boot Process, etc"
+echo "2.\) dv2: Non-Computer Subjects & Games: --Educational, Comp, Board, etc"
+echo "3.\) dv3: Cybersecurity: -- Techniques & Strategies"
+echo "4.\) dv4: File Configuration & Difficult Program Installation"
+echo "5.\) dv5: Linux Master Program: -- From zero to hero"
+echo "6.\) dv6: CLI Tools: -- Exhaustive guides/manuals"
+echo "7.\) dv7: Libraries: -- Their purposes"
+echo "8.\) dv8: Daemons & /etc Config Files: -- A what's what list of both"
+echo "help\) dv-help: TLDR Information: -- Markdown parsing, Scripts, etc"
+echo "=================="
+echo " "
+echo "category #: "; read userinputdesiredcategory
+
+# Get the options
+
+clear
+
+    case $userinputdesiredcategory in
+	0)
+		dvnumpath=dv0.md # Which dv.md file to put information in.	
+		dvnum="- dv0: " # Part of information to put in files.
+	#	dv0
+		;;	    
+	1)  
+		dvnumpath=dv1.md	
+		dvnum="- dv1: "
+	 #	dv1
+	    ;;
+	2)
+		dvnumpath=dv2.md	
+		dvnum="- dv2: "
+	 #	dv2
+	   ;;
+	3)  
+		dvnumpath=dv3.md	
+		dvnum="- dv3: "
+	 #	dv3
+	   ;; 
+	4)  
+		dvnumpath=dv4.md	
+		dvnum="- dv4: "
+	 #	dv4
+	   ;;
+   	5)
+		dvnumpath=dv5.md	
+		dvnum="- dv5: "
+	 #	dv5
+		;;
+	6)
+		dvnumpath=dv6.md	
+		dvnum="- dv6: "
+	 #	dv6
+		;;
+	7)
+		dvnumpath=dv7.md	
+		dvnum="- dv7: "
+	 #	dv7
+		;;
+	8)
+		dvnumpath=dv8.md	
+		dvnum="- dv8: "
+	 #	dv8
+		;;
+	help)
+		dvnumpath=dv-help.md	
+		dvnum="- dvHelp: "
+	 #	dvHelp
+	 	;;
+	 \?) # incorrect option
+	   badoption=1;;
+    esac
+
+	bad_option_check	
+}
+
+################################################################################
+# delete_note - Add New Lines to dv9.md					       #
+################################################################################
+deletenote_create_tmpfiledv9()
+    {
+	tmpFile=temporaryFile-DV9
+    	pathtofile="/tmp/${tmpFile}"
+    	touch $pathtofile
+        head -4 /home/dv/.tldr/tldr/pages/personal/dv9.md > $pathtofile
+        tail +9 /home/dv/.tldr/tldr/pages/personal/dv9.md >> $pathtofile
+}
+################################################################################
+# delete_note - Add New Lines to category File {dv#.md}
+################################################################################
+deletenote_create_tmpfiledv()
+    {
+	tmpFile=temporaryFile-DV
+    	pathtofile="/tmp/${tmpFile}"
+	categorypath="${pathtopersonal}${dvnumpath}"
+    	touch $pathtofile
+        head -4 $categorypath > $pathtofile
+        tail +9 $categorypath >> $pathtofile
+}
+################################################################################
+# delete_note - Add Lines to Temp-Info File
+###############################################################################
+#deletenote_create_tmpfileinfo()
+#    { 
+#	tmpFile=temporaryFile-Info
+#    	pathtofile="/tmp/${tmpFile}"
+#	categorypath="${pathtopersonal}${dvnumpath}"
+#	concat="${dvnum} ${userinputnotedescription}"
+#	touch $pathtofile 
+#        head -7 $categorypath > $pathtofile
+#        tail +7 $pathtofile > $pathtofile
+#        cut -d ' ' -f 1 $pathtofile > $pathtofile
+#	cat $pathtofile
+#
+#}
+################################################################################
+# delete_note - Perform Safety-Check: Stops Overwriting of any Existing Notes. 
+################################################################################
+deletenote_get_nameavailability()
+    {
+		clear
+	tmpFile2=temporaryFile-test
+    	pathtofile2="/tmp/${tmpFile2}"
+    	touch $pathtofile2
+	categorypath="${pathtopersonal}${dvnumpath}"
+#	head -7 $categorypath | tail -1 | cut -c 2- | awk -F '`' '{print $1}' > $pathtofile2
+#       head -5 $categorypath | tail -1 | cut -c 2- >> $pathtofile2
+
+       programtodelete=$(head -7 $categorypath | tail -1 | cut -c 2- | awk -F '`' '{print $1}')
+       programdescription=$(head -5 $categorypath | tail -1 | cut -c 2-) 
+	echo
+	echo "         DO YOU WISH TO DELETE?  "
+
+	echo "     =============================="
+	echo "         {{ $programtodelete }}     "             
+	echo "     =============================="
+
+	echo "   $programdescription     "
+#	cat $pathtofile2
+	echo
+	echo -n "         CONTINUE? 'y' or 'n': "; read confirmfiledelete
+	
+	echo
+#	programtodelete=$(cat $pathtofile2)
+#	programdescription=$
+	case $confirmfiledelete in 
+		y)
+			clear;;
+			
+		n)
+			clear
+			echo 
+			echo "      STOP DELETING: $programtodelete ?"
+			echo
+			echo -n "             'y' or 'n'"; read confirmabort
+			echo
+			echo
+			case $confirmabort in 
+				y)
+					exit;;
+				n) 	
+					clear;;
+
+			esac
+	esac
+    }
+################################################################################
+# delete_note - Ask for Confirmation of Selected: Name, category, Description.
+################################################################################
+deletenote_get_finalconfirmation()
+{
+ desiredpath="/home/${newuser}/.tldr/tldr/pages/personal/"
+pathtodeletedfiles="${desiredpath}deletedFiles.md"
+if [ -f $pathtodeletedfiles ]; then
+	clear
+else
+	touch $pathtodeletedfiles
+fi
+
+echo " " >> $pathtodeletedfiles
+echo $programtodelete >> $pathtodeletedfiles     
+echo $programdescription >> $pathtodeletedfiles
+
+echo
+echo "You can find your deleted files at: $pathtodeletedfiles"
+echo
+
+}
+################################################################################
+# delete_note - Copy Temporary notes into their final.
+################################################################################
+# deletenote_replace_dvfiles()
+#    {
+#}
+################################################################################
+# delete_note - Open Newly Created Note
+################################################################################
+deletenote_delete_files()
+{      
+ dvbeforedeletion="$categorypath"
+ dv9beforedeletion="/home/${newuser}/.tldr/tldr/pages/personal/dv9.md"
+echo "$dvnumpath BEFORE DELETION:"
+head -11 $dvbeforedeletion | tail -7 | cat
+echo "======================================"
+echo "dv9.md BEFORE DELETION:"
+head -11 $dv9beforedeletion | tail -7 | cat
+
+echo
+echo
+programtodeletemd="$programtodelete.md"
+	mv /tmp/temporaryFile-DV9 /home/${newuser}/.tldr/tldr/pages/personal/dv9.md 
+	mv /tmp/temporaryFile-DV /home/${newuser}/.tldr/tldr/pages/personal/$dvnumpath
+	
+
+	  rm /home/${newuser}/.tldr/tldr/pages/personal/${programtodeletemd}
+echo "  ================"
+echo "  = FILE DELETED =" 
+echo "  ================"
+echo
+echo
+echo "$dvnumpath AFTER DELETION:"
+head -11 $dvbeforedeletion | tail -7 | cat
+echo "======================================"
+echo "dv9.md AFTER DELETION:"
+head -11 $dv9beforedeletion | tail -7 | cat
+
+#echo "$dvnumpath BEFORE DELETION:"
+#head -11 $dvbeforedeletion | tail -3 | cat
+#echo
+#echo "======================================"
+#echo
+#echo "dv9.md BEFORE DELETION:"
+#head -11 $dv9beforedeletion | tail -3 | cat
+#
+#echo
+#echo
+##	  rm $searchthispathpersonal
+#echo "  ================"
+#echo "  = FILE DELETED =" 
+#echo "  ================"
+#echo
+#echo
+#echo "$dvnumpath AFTER DELETION:"
+#head -11 $dvbeforedeletion | tail -3 | cat
+#echo
+#echo "======================================"
+#echo
+#echo "dv9.md AFTER DELETION:"
+#head -11 $dv9beforedeletion | tail -3 | cat
+
+
+}
+
+
+################################################################################
+############################## open_note ENTRANCE ##############################
+################################################################################
+# open_note - opennote_get_nameavailability:  Check for improper input in a case statment. 		 	#	
+################################################################################
+
+opennote_get_nameavailability()
+
+{
+vim /home/${newuser}/.tldr/tldr/pages/personal/${userinput2}
+
+
+#clear
+#echo "Note to Open23: "; read filetoopen
+#clear
+#echo
+#echo "Note Chosen: $filetoopen"
+
+#	newuser=$(whoami 2>&1)  #I used this "OUTPUT=$(command arguments 2>&1)" because
+				# "whoami > newuser" wasn't working. The "2" redirects stderr 
+				#  and the "&1" which is stdin, are both redirected (we could
+				# have simply put ">&" instead of "2>&1". So it takes the 
+				# output and sends it to stdin and then redirects stdin 
+				# into "$" variable which is set equal to "newuser".
+				# IF THIS IS RUN AS ROOT IT WILL FAIL BECAUSE ROOT IS THE USER (whoami)
+
+# desiredpath="/home/${newuser}/.tldr/tldr/pages"
+#tmpfile="/tmp/cmdResults"
+#touch $tmpfile
+#
+#fileinpersonal=${desiredpath}/personal/${userinput2}
+#
+#
+#
+#find $fileinpersonal 2>/dev/null 1>>$tmpfile
+#
+#echo
+#echo "All Files Named: $userinput2"
+#echo "===================================="
+#cat $tmpfile
+#
+#finalpath=$(cat $tmpfile | head --lines 1)
+#
+#case $finalpath in 
+#		"")
+#			echo
+#			echo "INPUT ERROR: NO INPUT";;
+#	$fileinpersonal)
+#			echo
+#			vim $finalpath
+#			echo "OPENED NOTE: /personal/${userinput2}.md";;
+#	*)
+#			echo
+#			echo "TLDR FILE ${userinput2} NOT FOUND";;
+#esac
+
+
+# A GREAT WAY TO CHECK IF A FILE EXISTS (-f /path/to/file)
+#if [ -f ${desiredpath}/common/${desiredfile} ]; then
+#	echo "FILE IS IN COMMON"
+#else
+#	echo "FILE IS NOT IN COMMON!!!!"
+#fi
+
+#echo
+#if [ -f $tmpfile ]; then
+#rm $tmpfile #clean-up: deleting temporary file "cmdResults"
+#fi
+}
+
+
+
+################################################################################
+############################ create_note ENTRANCE ##############################
+################################################################################
+# create_note - Process the input options				      #
+################################################################################
+createnote_get_userinput()
+{
+	clear
+	echo " " 
+	echo "ENTER DESIRED NOTE NAME:"
+	echo "=========================="; read userinputdesiredname
+	clear
+
+echo " "
+echo "CHOOSE A category:"
+echo "=================="
+echo "0.\) dv0: System Administration & Popular Tool List: -- How to's for common tasks"
+echo "1.\) dv1: Broad Computer Subjects: -- EFI, Shell, Networking, Boot Process, etc"
+echo "2.\) dv2: Non-Computer Subjects & Games: --Educational, Comp, Board, etc"
+echo "3.\) dv3: Cybersecurity: -- Techniques & Strategies"
+echo "4.\) dv4: File Configuration & Difficult Program Installation"
+echo "5.\) dv5: Linux Master Program: -- From zero to hero"
+echo "6.\) dv6: CLI Tools: -- Exhaustive guides/manuals"
+echo "7.\) dv7: Libraries: -- Their purposes"
+echo "8.\) dv8: Daemons & /etc Config Files: -- A what's what list of both"
+echo "help\) dv-help: TLDR Information: -- Markdown parsing, Scripts, etc"
+echo "=================="
+echo " "
+echo "category #: "; read userinputdesiredcategory
+
+# Get the options
+
+clear
+
+echo " "
+echo "           NOTE DESCRIPTION:"
+echo "======================================"
+echo " "
+read userinputnotedescription
+
+
+    case $userinputdesiredcategory in
+	0)
+		dvnumpath=dv0.md # Which dv.md file to put information in.	
+		dvnum="- dv0: " # Part of information to put in files.
+	#	dv0
+		;;	    
+	1)  
+		dvnumpath=dv1.md	
+		dvnum="- dv1: "
+	 #	dv1
+	    ;;
+	2)
+		dvnumpath=dv2.md	
+		dvnum="- dv2: "
+	 #	dv2
+	   ;;
+	3)  
+		dvnumpath=dv3.md	
+		dvnum="- dv3: "
+	 #	dv3
+	   ;; 
+	4)  
+		dvnumpath=dv4.md	
+		dvnum="- dv4: "
+	 #	dv4
+	   ;;
+   	5)
+		dvnumpath=dv5.md	
+		dvnum="- dv5: "
+	 #	dv5
+		;;
+	6)
+		dvnumpath=dv6.md	
+		dvnum="- dv6: "
+	 #	dv6
+		;;
+	7)
+		dvnumpath=dv7.md	
+		dvnum="- dv7: "
+	 #	dv7
+		;;
+	8)
+		dvnumpath=dv8.md	
+		dvnum="- dv8: "
+	 #	dv8
+		;;
+	help)
+		dvnumpath=dv-help.md	
+		dvnum="- dvHelp: "
+	 #	dvHelp
+	 	;;
+	 \?) # incorrect option
+	   badoption=1;;
+    esac
+concat="${dvnum} ${userinputnotedescription}"
+
+	bad_option_check	
+}
+
+################################################################################
+# create_note - Add New Lines to dv9.md					       #
+################################################################################
+createnote_create_tmpfiledv9()
+    {
+	tmpFile=temporaryFile-DV9
+    	pathtofile="/tmp/${tmpFile}"
+	concat="${dvnum} ${userinputnotedescription}"
+    	touch $pathtofile
+        head -4 /home/dv/.tldr/tldr/pages/personal/dv9.md > $pathtofile
+        echo $concat >> $pathtofile; echo >> $pathtofile
+	echo  "\`$userinputdesiredname\`" >> $pathtofile; echo >> $pathtofile
+        tail +5 /home/dv/.tldr/tldr/pages/personal/dv9.md >> $pathtofile
+}
+################################################################################
+# create_note - Add New Lines to category File {dv#.md}
+################################################################################
+createnote_create_tmpfiledv()
+    {
+	tmpFile=temporaryFile-DV
+    	pathtofile="/tmp/${tmpFile}"
+	categorypath="${pathtopersonal}${dvnumpath}"
+	concat="${dvnum} ${userinputnotedescription}"
+    	touch $pathtofile
+        head -4 $categorypath > $pathtofile
+        echo $concat >> $pathtofile; echo >> $pathtofile
+	echo  "\`$userinputdesiredname\`" >> $pathtofile; echo >> $pathtofile
+        tail +5 $categorypath >> $pathtofile
+      #       	 /home/dv/.tldr/tldr/pages/linux/$dvnumFile
+}
+################################################################################
+# create_note - Add Lines to Temp-Info File
+################################################################################
+createnote_create_tmpfileinfo()
+    { 
+	tmpFile=temporaryFile-Info
+    	pathtofile="/tmp/${tmpFile}"
+	categorypath="${pathtopersonal}${dvnumpath}"
+	concat="${dvnum} ${userinputnotedescription}"
+	touch $pathtofile 
+	echo "# $userinputdesiredname" > $pathtofile; echo >> $pathtofile
+        echo "> $userinputnotedescription" >> $pathtofile; echo >> $pathtofile
+#       	 /home/dv/.tldr/tldr/pages/linux/$dvnumFile
+}
+################################################################################
+# create_note - Perform Safety-Check: Stops Overwriting of any Existing Notes. 
+################################################################################
+createnote_get_nameavailability()
+    {
+		clear
+ 
+	   	 tmpFile=temporaryFile-createnote_get_nameavailability
+	   	 pathtofile="/tmp/${tmpFile}"
+	   	 touch $pathtofile
+		 fullname="${userinputdesiredname}.md"
+		searchthispathpersonal="${pathtopersonal}${fullname}"
+	name_autocheck()
+		{
+		 echo "Name Availability Auto-Check:"
+		 echo " "
+		 echo "======================================="
+
+		 echo "PERSONAL:"	
+		 ls $searchthispathpersonal | cut -d / -f 8 > $pathtofile
+		 cat $pathtofile
+		 echo " " 
+		 echo "==================================== "
+
+	         echo "---- IF ALL THE ABOVE LINES READ ----"
+		 echo "         'cannot access:'        "
+	         echo "---- THEN IT IS SAFE TO PROCEED. ----"
+		 echo " ____________________________________"
+		 echo "-- Otherwise Quit the Program Now! --"
+		read
+		clear
+	}
+name_autocheck
+
+		echo " "
+		 echo "          DID YOU REALLY CHECK IF"
+		 echo "                   $userinputdesiredname"
+		 echo "             IS ALREADY IN USE????"
+		 echo "        ==========================="
+		 echo "         "
+		 echo "         (y)YES OR (n)NO OR (e)EXIT"
+		 read safetyresponse
+
+    case $safetyresponse in
+	y)
+		echo "Proceeding..."
+		clear
+		;;	    
+	n) 
+		clear
+		echo " " 
+		echo "Please take the time to check before proceeding!"
+		read
+		createnote_get_nameavailability	
+		clear;;
+	e)
+		exit;;
+	 \?) # incorrect option
+	   badoption=1;;
+    esac
+    }
+################################################################################
+# create_note - Ask for Confirmation of Selected: Name, category, Description.
+################################################################################
+createnote_get_finalconfirmation()
+    {
+	    while confirmuserinput="n"
+	    do
+	    echo " "
+	    echo "             YOU'VE CHOSEN:"
+	    echo "====================================="
+	    echo "          NAME: {$userinputdesiredname}"
+	    echo "      category: {$userinputdesiredcategory}"
+	    echo "   Description: {$userinputnotedescription}"
+	    echo "===================================== "
+	    echo " " 
+	    echo "          KEEP THESE CHOICES?"
+	   
+	    echo " " 
+	    echo "       (y)Yes OR (n)No OR (e)Exit"
+
+	read confirmuserinput
+
+	    case $confirmuserinput in
+	y) 
+		clear
+		break;;
+	n)
+		clear
+		createnote_get_userinput
+		createnote_get_nameavailability;;
+	e) 
+		exit;;
+	 \?) # incorrect option
+	   badoption=1;;
+	esac
+	bad_option_check
+	done
+}
+################################################################################
+# create_note - Copy Temporary notes into their final.
+################################################################################
+createnote_create_finalfiles()
+    {
+	mv /tmp/temporaryFile-DV9 /home/dv/.tldr/tldr/pages/personal/dv9.md 
+	mv /tmp/temporaryFile-DV /home/dv/.tldr/tldr/pages/personal/$dvnumpath
+	mv /tmp//temporaryFile-Info /home/dv/.tldr/tldr/pages/personal/$fullname
+}
+################################################################################
+# create_note - Open Newly Created Note
+################################################################################
+createnote_open_files()
+    {
+	  vim $searchthispathpersonal
+}
+################################################################################
+############################ list_notes ENTRANCE ##############################
+################################################################################
+# list_notes
+################################################################################
+listnotes_display_allnotes()
+{
+	ls /home/${newuser}/.tldr/tldr/pages/personal/ 
+}
+################################################################################
+############################ fuzzyfind_notes ENTRANCE ##############################
+################################################################################
+# fuzzyfind_notes
+################################################################################
+fuzzyfindnotes_find_matchingnotes()
+{
+	ls /home/${newuser}/.tldr/tldr/pages/personal/*$userinput2* | cut -d '/' -f 8- 
+}
+################################################################################
+############################ search_notes ENTRANCE ##############################
+################################################################################
+# search_notes
+################################################################################
+searchnotes_discover_matchingtext()
+{
+	grep $userinput2 /home/${newuser}/.tldr/tldr/pages/personal/* | cut -d '/' -f 8- | batcat --paging never --language md 
+}
+################################################################################
+############################ move_note ENTRANCE ##############################
+################################################################################
+# move_note
+################################################################################
+movenote_move_matchingnote()
+{
+	mv ${userinput2} "${pathtopersonal}${userinput3}"
+}
+################################################################################
+############################ view_note ENTRANCE ##############################
+################################################################################
+# view_note
+################################################################################
+viewnote_output_notecontents()
+{
+	batcat --paging never --style=numbers /home/${newuser}/.tldr/tldr/pages/personal/$userinput1
+}
+################################################################################
+# Main program								       #
+################################################################################
+list_notes()
+{
+	listnotes_display_allnotes
+}
+fuzzyfind_notes()
+{
+	fuzzyfindnotes_find_matchingnotes
+}
+search_notes()
+{
+	searchnotes_discover_matchingtext
+}
+view_note()
+{
+	viewnote_output_notecontents
+}
+
+open_note()
+{
+	opennote_get_nameavailability
+}
+
+create_note()
+{
+	createnote_get_userinput
+	createnote_get_nameavailability		# Check if there is already a file named that.
+	createnote_create_tmpfiledv9
+	createnote_create_tmpfiledv
+	createnote_create_tmpfileinfo
+	createnote_get_finalconfirmation		#   Preview your choice of name, category, 
+			# and description before making final copy.
+	createnote_create_finalfiles
+	createnote_open_files
+}
+
+remove_note()
+{
+	removenote_get_userinput
+	deletenote_get_nameavailability
+	deletenote_create_tmpfiledv9
+	deletenote_create_tmpfiledv
+	deletenote_create_tmpfileinfo
+	deletenote_get_finalconfirmation
+	#deletenote_replace_dvfiles
+	deletenote_delete_files
+}
+move_note()
+{
+ 	movenote_move_matchingnote
+}
+
+# Set initial variables
+#-----------------------------------------
+# general variable
+#-----------------------------------------
+badoption=0
+error=0
+version=01.02.03
+varhelp=0
+opennote=0
+createnote=0
+removenote=0
+#-----------------------------------------
+# shared variables
+#-----------------------------------------
+userinput1=""
+userinput2=""
+userinput3=""
+#-----------------------------------------
+# view_note variables
+#-----------------------------------------
+userinput=""
+#-----------------------------------------
+# open_note variables
+#-----------------------------------------
+fileinpersonal=""
+filetoopen=""
+desiredpath=""
+tmpfile=""
+finalpath=""
+#-----------------------------------------
+# create_note & remove_noe variables
+#-----------------------------------------
+confirmuserinput="n"
+userinputdesiredname=""
+userinputdesiredcategory=""
+userinputnotedescription=""
+newuser=""
+dvnumpath=""
+dvnum=""
+concat=""
+pathtofile=""
+pathtopersonal="/home/dv/.tldr/tldr/pages/personal/"
+categorypath=""
+tmpFile=""
+fullname=""
+searchthispathpersonal=""
+safetyresponse=""
+#-----------------------------------------
+# list_notes variables
+#-----------------------------------------
+listnotes=0
+#-----------------------------------------
+# fuzzyfind_notes
+#-----------------------------------------
+fuzzyfindnotes=0
+#-----------------------------------------
+# search_notes
+#-----------------------------------------
+searchnotes=0
+#-----------------------------------------
+# view_note
+#-----------------------------------------
+viewnote=0
+#-----------------------------------------
+# move_note
+#-----------------------------------------
+ movenote=0
+#---------------------------------------------------------------------------
+# Check for root
+
+#if [ `id -u` != 0 ]
+#then
+#    echo ""
+#    echo "You must be root user to run this program"
+#    echo ""
+#    exit
+#fi
+
+# Get the options
+#if [ "$userinput" = g|c|o|r|h ]; 
+	while getopts "ghcorlfsm? " option; do
+	    case $option in
+		g) # display GPL
+			f_gpl;;
+		h) # display Help
+			f_help;;
+		: ) # Default Option: open a give note
+			opennote=1;;
+		c) # Set shortTemplate mode
+			createnote=1;;
+		o) # Set longTemplate mode
+			opennote=1;;
+		r) # Set longTemplate mode
+			removenote=1;;
+		l) # List All Notes
+			listnotes=1;;
+		f) # Fuzzy Find Titles of Notes
+			fuzzyfindnotes=1;;
+		s) # Search For a Note With Speific Text
+			searchnotes=1;;
+		m) # Move the Note to the Notes Folder.
+			movenote=1;;
+#		1) # Display dv1.md
+#			dv1=1;;
+#		2) # Display dv1.md
+#			dv2=1;;
+#		3) # Display dv1.md
+#			dv3=1;;
+#		4) # Display dv1.md
+#			dv4=1;;
+#		5) # Display dv1.md
+#			dv5=1;;
+#		6) # Display dv1.md
+#			dv6=1;;
+#		7) # Display dv1.md
+#			dv7=1;;
+#		8) # Display dv1.md
+#			dv8=1;;
+#		9) # Display dv1.md
+#			dv9=1;;
+#		help) # Display dv1.md
+#			dvhelp=1;;
+	       \?) # incorrect option
+			badoption=1;;
+	    esac
+	done
+#NOTE TO SELF: WHEN YOU RETURN FROM THE TEMPLE YOU SHOULD
+#1. Test the -c option and make it so you can enter the name of the note after the name of the script. You can see how using the installPackage scripts i made last year.
+#2. Convert opennoteote script and then copy and paste it into this script.
+#3. Finish remove script and then convert it and copy it into this script
+#4. Create a bash alias for this script with a simple and easy to use name/key
+
+
+userinput1=$1
+userinput2=$2
+userinput3=$3
+newuser=$(whoami 2>&1)
+
+if [ "$opennote" == 1 ]; then
+      open_note
+      exit
+elif [ "$createnote" == 1 ]; then
+	create_note
+	exit
+elif [ "$removenote" == 1 ]; then
+	remove_note
+	exit
+elif [ "$1" = "" ]; then 
+	list_notes
+	exit
+elif [ "$fuzzyfindnotes" = 1 ]; then 
+	fuzzyfind_notes
+	exit
+elif [ "$searchnotes" = 1 ]; then 
+	search_notes
+	exit
+elif [ "$movenote" = 1 ]; then 
+	move_note	
+	exit
+elif [ "$badoption" = 1 ]; then 
+  	bad_option_check
+	exit
+else
+#	userinput=$1.md
+	view_note
+	exit
+fi
+#Keep or Abandon Changes
+#Delete Temporary Notes
+#Open New Note in Text Editor to be begin note taking.
+#
+#SelectFile
+#AlterFile
+#CreateNote
+#AlterNote
+#OpenNote
+exit
+
+################################################################################
+# End of program
+################################################################################

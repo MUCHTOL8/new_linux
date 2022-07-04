@@ -1,0 +1,199 @@
+#! /bin/bash
+
+################################################################################
+#                                   create-script			       #
+#									       #
+# This is a simple program that creates a script file containg a pre-made      #
+# script template.                                                             #
+# It copies ~/.tldr/tldr/pages/linux/templateScript-info.md to the present     #
+# working directory.                                                           #
+#									       #
+# Change History							       #
+# 01/27/2020 Joshua Anderson   Original code. Suitable only for testing.       #
+# 01/27/2020 Joshua Anderson   Tested code. V1.0.0.			       #
+################################################################################
+################################################################################
+# Copyright (C) 2020 Joshua Anderson                                           #
+# jcanderson.al@hotmail.com						       #
+# This program is free software; you can redistribute it and/or modify	       #
+# it under the terms of the GNU General Public License as published by         #
+# the Free Software Foundation; either version 2 of the License, or            #
+# (at your option) any later version. 					       #
+#									       #
+# This program is distributed in the hope that it will be useful,	       #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of	       #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the		       #
+# GNU General Public License for more details.				       #
+#									       #
+# You should have received a copy of the GNU General Public License	       #
+# along with this program; if not, write to the Free Software		       #
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA      #
+################################################################################
+################################################################################
+# Help									       #
+################################################################################
+Help()
+{
+    # Display Help
+    echo "create-script - Creates a new shell script file with"
+    echo "a containting a template script."
+    echo
+    echo "Syntax: create-script --[g|h|s|l|"
+    echo "options:"
+    echo "g	Print the GPL license notification."
+    echo "h     Print this Help."
+    echo "s     Create a script using the shortened version of the template."
+    echo "l     Create a script using the long full length version of the tempalte."
+    echo
+}
+
+################################################################################
+# Print the GPL license header						       #
+################################################################################
+gpl()
+{
+echo
+echo
+echo "##############################################################################"
+echo "# Copyright (C) 2007, 2016 David Both				           #"
+echo "# Copyright (C) 2020 Joshua Anderson                                         #"
+echo "# jcanderson.al@hotmail.com					           #"
+echo "# LinuxGeek46@both.org						           #"
+echo "#						       			           #"
+echo "# This program is free software; you can redistribute it and/or modify       #"
+echo "# it under the terms of the GNU General Public License as published by       #"
+echo "# the Free Software Foundation; either version 2 of the License, or          #"
+echo "# (at your option) any later version.				           #"
+echo "#						       			           #"
+echo "# This program is distributed in the hope that it will be useful,	           #"
+echo "# but WITHOUT ANY WARRANTY; without even the implied warranty of	           #"
+echo "# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the	           #"
+echo "# GNU General Public License for more details.			           #"
+echo "#						        		           #"
+echo "# You should have received a copy of the GNU General Public License          #"
+echo "# along with this program; if not, write to the Free Software	           #"
+echo "# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA    #"
+echo "##############################################################################"
+echo
+}
+
+################################################################################
+# Short Template #
+################################################################################
+ShortScript()
+    {
+    if [ $shortTemplate = 1 ] 
+        then
+       	cp /home/dv/.tldr/tldr/pages/linux/longScript-info.md ./$desiredName
+    fi
+}
+################################################################################
+# Long Template #
+################################################################################
+LongScript()
+    {
+    if [ $longTemplate = 1 ] 
+        then
+       	cp /home/dv/.tldr/tldr/pages/linux/longScript-info.md ./$desiredName
+    fi
+}
+################################################################################
+# Default Template #
+################################################################################
+DefaultScript()
+    {   
+	echo
+	echo "TEMPATES AVAILABLE:"
+	echo "==================="
+	ls /usr/local/bin/scripts | $templateArray
+	ls /usr/local/bin/scripts 
+	echo
+	echo "TYPE NAME OF TEMPLATE SCRIPT:"
+	echo "============================="
+	print $templateArray
+	read desiredTemplate
+
+	if [ "$desiredTemplate" == "" ]; then
+	touch ./$desiredName
+	chmod a+w $desiredName
+	echo "#! /bin/bash" > ./$desiredName
+else
+	cp /usr/local/bin/scripts/$desiredTemplate ./$desiredName
+fi
+}
+################################################################################
+################################################################################
+# Main program								       #
+################################################################################
+################################################################################
+# Set initial variables
+badoption=0
+error=0
+shortTemplate=0
+longTemplate=0
+defaultScript=0
+version=01.02.03
+desiredName=""
+templateArray=()
+desiredTemplate=""
+#---------------------------------------------------------------------------
+# Check for root
+
+if [ `id -u` != 0 ]
+then
+    echo ""
+    echo "You must be root user to run this program"
+    echo ""
+    exit
+fi
+
+################################################################################
+# Process the input options						       #
+################################################################################
+echo "ENTER DESIRED SCRIPT NAME:"
+echo "=========================="; read desiredName
+
+# Get the options
+while getopts ":ghsl" option; do
+    case $option in
+	g) # display GPL
+	   gpl;;
+	s) # Set shortTemplate mode
+	   shortTemplate=1;;
+	l) # Set longTemplate mode
+	   longTemplate=1;; 
+	h) # display Help
+	   Help;;
+       \?) # incorrect option
+	   badoption=1;;
+    esac
+done
+
+if [ $badoption = 1 ]
+then
+    echo "ERROR: Invalid option"
+    Help
+    error=1
+    exit
+fi
+
+if [ $shortTemplate = 1 ]
+then
+    ShortScript
+    exit
+fi
+
+if [ $longTemplate = 1 ]
+then 
+    LongScript
+    exit
+fi
+
+if [ true ]
+then
+    DefaultScript
+    exit
+fi
+################################################################################
+# End of program
+################################################################################
